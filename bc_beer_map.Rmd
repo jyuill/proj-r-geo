@@ -1,0 +1,64 @@
+---
+title: "BC Beer Map"
+author: "`r Sys.getenv('USER')`"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message=FALSE,
+                      warning=FALSE,
+                      fig.height=3.5,
+                      fig.width=6)
+
+library(tidyverse)
+library(lubridate)
+library(here)
+library(PerformanceAnalytics)
+library(plotly)
+library(scales)
+library(gridExtra)
+library(DT)
+library(ggmap)
+
+```
+
+## Intro {.tabset}
+
+Introduction with description, objectives, key data parameters.
+
+### Data
+
+Get data
+
+```{r}
+beer_latlon <- read_csv(here('data','brewery-lat-lon.csv'))
+tof_long <- -125.893311
+tof_lat <- 49.139622
+beer_latlon <- beer_latlon %>% mutate(
+  longitude=ifelse(City=='Tofino', tof_long, longitude),
+  latitude=ifelse(City=='Tofino', tof_lat, latitude)
+)
+#beer_latlon %>% ggplot(aes(x=longitude, y=latitude))+geom_point()  
+```
+
+### Maps
+
+Try to generate maps
+
+```{r}
+summary(beer_latlon[,14:15])
+beer_latlon <- beer_latlon %>% filter(!is.na(longitude) | !is.na(latitude))
+beerbox <- c(top=max(beer_latlon$latitude), right=max(beer_latlon$longitude), bottom=min(beer_latlon$latitude),
+          left=min(beer_latlon$longitude))
+```
+
+```{r}
+bcbg_map <- get_stamenmap(bbox=beerbox, zoom=6)
+ggmap(bcbg_map)+
+  geom_point(data=beer_latlon, aes(x=longitude, y=latitude))
+```
+
