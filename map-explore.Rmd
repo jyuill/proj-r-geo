@@ -1,0 +1,196 @@
+---
+title: "Exploring Maps in R"
+author: "`r Sys.getenv('USER')`"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    code_fold: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE,
+                      warning=FALSE,
+                      fig.height=3.5,
+                      fig.width=6)
+
+library(tidyverse)
+library(lubridate)
+library(here)
+library(PerformanceAnalytics)
+library(plotly)
+library(scales)
+library(gridExtra)
+library(DT)
+## for mapping
+library(ggmap)
+library(maps)
+library(mapproj)
+library(cowplot)
+```
+
+## Map Explore
+
+Exploring different map options. Focus on how maps are represented BEFORE data applied.
+
+#### Setup 
+
+Most accessible option:
+
+* **maps**, **ggmaps** packages, using **get_map()** to fetch coordinates of interest.
+* **ggplot2** for display, using **geom_map** or **geom_polygon**.
+* two main map sources: **Google**, **Stamen**.
+    + Stamen has some good controls and is more artistic.
+    + Google is *much* faster.
+
+Note that with ggmap/get_map it appears that Houston, Texas is the default(?). If inputs aren't accepted, it shows Houston area. (at least that happened in my first session)
+
+### Country
+
+#### Google
+
+Easy but not a great projection.
+
+```{r}
+## can use place names
+ctry_gg <- get_map(location='Canada', zoom=3)
+ggmap(ctry_gg)
+```
+
+#### Stamen
+
+Need to use coordinates, which gives more control. Also not a great projection.
+
+```{r}
+ctry_s <- get_stamenmap(c(top=75, right=-51, bottom=41, left=-143), zoom=4)
+ggmap(ctry_s)
+```
+
+### Province
+
+Google has several styles - covered further below.
+
+```{r}
+prov_gg <- get_map(location='British Columbia', zoom=5, maptype='roadmap')
+ggmap(prov_gg)
+```
+
+### City
+
+Vancouver:
+
+* longitude: 123.1207° W
+* latitude: 49.2827° N
+
+#### Stamen 
+
+Zoom settings determine the resolution.
+
+Vancouver by longitude / latitude boundary:
+
+```{r}
+## stamen based on bounding box - nice!
+van_s1 <- get_stamenmap(bbox=c(top=49.35, right=-123, bottom=49.18, left=-123.3), zoom=12)
+ggmap(van_s1)
+```
+
+```{r}
+## adjust bounding box
+van_s2 <- get_stamenmap(bbox=c(top=49.33, right=-123.05, bottom=49.24, left=-123.25), zoom=14)
+ggmap(van_s2)
+```
+
+```{r}
+van_s3 <- get_stamenmap(bbox=c(top=49.318, right=-123.085, bottom=49.26, left=-123.172), zoom=15)
+ggmap(van_s3)
+```
+
+Different map types
+
+* terrain (default)
+* watercolor: as name implies
+* toner: hard black/white
+
+```{r}
+van_s2w <- get_stamenmap(bbox=c(top=49.33, right=-123.05, bottom=49.24, left=-123.25), zoom=14, maptype='watercolor')
+ggmap(van_s2w)
+```
+
+Toner - pretty cool!
+
+```{r}
+#van_s2t <- get_stamenmap(bbox=c(top=49.33, right=-123.05, bottom=49.24, left=-123.25), zoom=14, maptype='toner')
+van_s2t <- get_stamenmap(bbox=c(top=49.318, right=-123.085, bottom=49.26, left=-123.172), zoom=15, maptype='toner')
+ggmap(van_s2t)
+```
+
+
+#### Google
+
+```{r}
+## Google: need API key - stored if local file listed in .gitignore so not in repo
+source('gmk.R')
+```
+
+With Google, can use regular names, not just coordinates.
+
+```{r}
+## google
+van_gg <- get_map(location='vancouver, british columbia')
+ggmap(van_gg)
+```
+
+Can use coordinates as well.
+
+```{r}
+## google: locaction with 2 coords - doesn't seem to work with boundary
+van_gg2 <- get_map(location=c(lon=-123.1, lat=49.35))
+ggmap(van_gg2)
+```
+
+Can control with two coordinates and zoom:
+
+```{r}
+van_gg3 <- get_map(location=c(lon=-123.13, lat=49.28), zoom=13)
+ggmap(van_gg3)
+```
+
+Different map types available:
+
+* terrain (default)
+* satellite
+* roadmap
+* hybrid (seems same as roadmap?)
+
+```{r}
+van_gg3s <- get_map(location=c(lon=-123.13, lat=49.28), zoom=13, maptype='satellite')
+ggmap(van_gg3s)
+```
+
+Roadmap
+
+```{r}
+van_gg3r <- get_map(location=c(lon=-123.13, lat=49.28), zoom=13, maptype='roadmap')
+ggmap(van_gg3r)
+```
+
+### Address
+
+#### Google 
+
+Can zoom in on address.
+
+* 445 west 2nd Avenue, Vancouver, British Columbia
+
+```{r}
+## google: try address -> high zoom (works)
+van_gg4 <- get_map(location='445 west 2nd Avenue, Vancouver, British Columbia', 
+                   zoom=16,
+                   maptype='satellite',
+                   force=TRUE)
+ggmap(van_gg4)
+```
+
+
+

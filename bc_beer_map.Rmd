@@ -23,6 +23,9 @@ library(scales)
 library(gridExtra)
 library(DT)
 library(ggmap)
+library(maps)
+library(mapproj)
+library(cowplot)
 
 ```
 
@@ -45,15 +48,19 @@ beer_latlon <- beer_latlon %>% mutate(
 #beer_latlon %>% ggplot(aes(x=longitude, y=latitude))+geom_point()  
 ```
 
-### Maps
+## Maps
 
 Try to generate maps
+
+### Topo map
 
 ```{r}
 summary(beer_latlon[,14:15])
 beer_latlon <- beer_latlon %>% filter(!is.na(longitude) | !is.na(latitude))
-beerbox <- c(top=max(beer_latlon$latitude), right=max(beer_latlon$longitude), bottom=min(beer_latlon$latitude),
-          left=min(beer_latlon$longitude))
+beerbox <- c(top=max(beer_latlon$latitude), 
+             right=max(beer_latlon$longitude), 
+             bottom=min(beer_latlon$latitude),
+             left=min(beer_latlon$longitude))
 ```
 
 ```{r}
@@ -61,4 +68,11 @@ bcbg_map <- get_stamenmap(bbox=beerbox, zoom=6)
 ggmap(bcbg_map)+
   geom_point(data=beer_latlon, aes(x=longitude, y=latitude))
 ```
+
+### Simple map
+
+```{r}
+
+```
+
 
